@@ -1,8 +1,4 @@
 
- 
-libgl1
-
-libglib2.0-0
 streamlit
 streamlit-webrtc
 mediapipe
@@ -10,4 +6,3 @@ tensorflow
 opencv-python-headless
 numpy
 
-python3.11.7
