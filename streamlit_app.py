@@ -7,11 +7,11 @@ import tensorflow as tf
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import LSTM, Dense, InputLayer
 
-# --- إعدادات الصفحة ---
-st.set_page_config(page_title="وصال AI - بث مباشر", layout="centered")
+
+st.set_page_config(page_title="وصال AI", layout="centered")
 st.title("wesal-AI live")
 
-# --- تحميل الموديل (1530 نقطة) ---
+
 actions = np.array(['HELP', 'TOILET', 'KF_GATE', 'THANKS', 'WELCOME'])
 
 @st.cache_resource
@@ -24,7 +24,7 @@ def load_my_model():
     model.add(Dense(64, activation='relu'))
     model.add(Dense(32, activation='relu'))
     model.add(Dense(len(actions), activation='softmax'))
-    model.load_weights(r"C:\Users\ASUS\Downloads\action_model.h5") # تأكدي من وجود الملف في نفس المجلد
+    model.load_weights("action_model.h5") 
     return model
 
 model = load_my_model()
@@ -65,5 +65,6 @@ class SignLanguageTransformer(VideoTransformerBase):
 
 # --- تشغيل البث في الموقع ---
 webrtc_streamer(key="wesal-stream", video_transformer_factory=SignLanguageTransformer)
+
 
 st.write("developed by dalia , tala")
