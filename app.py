@@ -7,14 +7,14 @@ from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import LSTM, Dense, InputLayer
 import os
 
-# --- 1. إعدادات الصفحة ---
-st.set_page_config(page_title="وصال AI", page_icon="🤟", layout="centered")
+
+st.set_page_config(page_title="وصال AI", page_icon=":)", layout="centered")
 
 st.title("Wesal-AI")
 st.subheader("مترجم لغة الإشارة الفوري (نسخة الويب)")
 st.markdown("---")
 
-# --- 2. دالة بناء الموديل (مطابق لكودك السابق 1530) ---
+
 @st.cache_resource # لتسريع الموقع وعدم تحميل الموديل في كل مرة
 def load_wesal_model():
     model = Sequential()
@@ -26,13 +26,13 @@ def load_wesal_model():
     model.add(Dense(32, activation='relu'))
     model.add(Dense(len(actions), activation='softmax'))
     
-    # تأكدي من وضع ملف الـ h5 في نفس مجلد الكود
+  
     weights_path = 'action_model.h5' 
     if os.path.exists(weights_path):
         model.load_weights(weights_path)
     return model
 
-# --- 3. استخراج النقاط (Mediapipe) ---
+-
 mp_holistic = mp.solutions.holistic
 
 def extract_keypoints(results):
@@ -42,7 +42,7 @@ def extract_keypoints(results):
     return np.concatenate([face, lh, rh])
 
 # --- 4. تشغيل الواجهة ---
-actions = np.array(['أريد مساعدة', 'بوابة الملك فهد', 'شكراً', 'دورة مياه', 'عفواً'])
+actions = np.array(['HELP', 'TOILET', 'KF_GATE', 'THANKS', 'WELCOME'])
 model = load_wesal_model()
 
 st.sidebar.info("هذا النظام يستخدم الذكاء الاصطناعي لترجمة الإشارات الحركية إلى نصوص وصوت.")
@@ -62,8 +62,7 @@ if img_file_buffer is not None:
         results = holistic.process(image_rgb)
         keypoints = extract_keypoints(results)
         
-        # محاكاة الـ 30 فريم (لأن الموقع يأخذ صورة واحدة حالياً)
-        # في النسخة المتقدمة يتم تجميع الفيديو
+        
         sequence = [keypoints] * 30 
         
         # التوقع
@@ -78,6 +77,7 @@ if img_file_buffer is not None:
         
         if confidence > 0.7:
             st.success(f"تم التعرف على الإشارة: {detected_action}")
-            # ملاحظة: النطق الصوتي يحتاج إعدادات إضافية في السيرفرات
+            
         else:
-            st.warning("الإشارة غير واضحة تماماً، حاول مرة أخرى.")
+
+            st.warning("الإشارة غير واضحة تماماً.")
