@@ -29,13 +29,12 @@ def load_my_model():
 
 model = load_my_model()
 
-# --- معالج الفيديو (هنا السحر!) ---
+
 class SignLanguageTransformer(VideoTransformerBase):
     def __init__(self):
         self.mp_holistic = mp.solutions.holistic.Holistic(min_detection_confidence=0.5, min_tracking_confidence=0.5)
         self.sequence = []
-        self.output_text = "في انتظار الإشارة..."
-
+        self.output_text = "waiting for the sign"
     def transform(self, frame):
         img = frame.to_ndarray(format="bgr24")
         
@@ -63,8 +62,19 @@ class SignLanguageTransformer(VideoTransformerBase):
         
         return img
 
-# --- تشغيل البث في الموقع ---
-webrtc_streamer(key="wesal-stream", video_transformer_factory=SignLanguageTransformer)
+#تشغيل البث في الموقع
+webrtc_streamer(
+    key="wesal-stream",
+    video_transformer_factory=SignLanguageTransformer,
+    rtc_configuration={
+        "iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]
+    },
+    media_stream_constraints={
+        "video": {"width": 640, "height": 480}, 
+        "audio": False
+    }
+)
 
 
 st.write("developed by dalia , tala")
+
