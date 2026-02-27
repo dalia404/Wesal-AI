@@ -5,8 +5,9 @@ libgl1
 libglib2.0-0
 streamlit
 streamlit-webrtc
-mediapipe==0.10.9
-tensorflow==2.12.0
+mediapipe
+tensorflow
 opencv-python-headless
 numpy
+
 python3.11.7
