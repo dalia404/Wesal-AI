@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>وصال - Wesal-AI | Arabic Sign Language Interpreter</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <!-- Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body class="dark-mode"> <!-- Starting in dark mode for best presentation of "medical cyan & navy" -->
+    <div class="app-container">
+
+        <!-- Sidebar Navigation (Far Right due to RTL) -->
+        <aside class="sidebar glass-panel">
+            <div class="logo-container">
+                <i class="fa-solid fa-hands-asl-interpreting logo-icon"></i>
+                <div class="logo-text">Wesal_AI</div>
+            </div>
+
+            <nav class="side-nav">
+                <button class="nav-btn active" title="Interpreter">
+                    <i class="fa-solid fa-camera"></i>
+                </button>
+
+                <!-- Quick Guide Section -->
+                <div class="dropdown-container">
+                    <button class="nav-btn" id="guide-btn" title="دليل لغة الإشارة">
+                        <i class="fa-solid fa-book-open"></i>
+                    </button>
+                    <!-- Move menu to left for RTL -->
+                    <div class="dropdown-menu guide-menu glass-panel" id="guide-menu" style="right: 80px;">
+                        <h4 class="en-label">فهرس التعلم (أ-ي)</h4>
+                        <div class="thumbnail-gallery arabic-text">
+                            <div class="thumb" title="أ">أ</div>
+                            <div class="thumb" title="ب">ب</div>
+                            <div class="thumb" title="ت">ت</div>
+                            <div class="thumb" title="ث">ث</div>
+                            <div class="thumb" title="ج">ج</div>
+                            <div class="thumb" title="ح">ح</div>
+                            <div class="thumb" title="خ">خ</div>
+                            <div class="thumb" title="د">د</div>
+                            <div class="thumb" title="ذ">ذ</div>
+                            <div class="thumb" title="ر">ر</div>
+                            <div class="thumb" title="ز">ز</div>
+                            <div class="thumb" title="س">س</div>
+                            <div class="thumb" title="ش">ش</div>
+                            <div class="thumb" title="ص">ص</div>
+                            <div class="thumb" title="ض">ض</div>
+                            <div class="thumb" title="ط">ط</div>
+                            <div class="thumb" title="ظ">ظ</div>
+                            <div class="thumb" title="ع">ع</div>
+                            <div class="thumb" title="غ">غ</div>
+                            <div class="thumb" title="ف">ف</div>
+                            <div class="thumb" title="ق">ق</div>
+                            <div class="thumb" title="ك">ك</div>
+                            <div class="thumb" title="ل">ل</div>
+                            <div class="thumb" title="م">م</div>
+                            <div class="thumb" title="ن">ن</div>
+                            <div class="thumb" title="هـ">هـ</div>
+                            <div class="thumb" title="و">و</div>
+                            <div class="thumb" title="ي">ي</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Settings Button reveals toggles -->
+                <div class="dropdown-container">
+                    <button class="nav-btn" id="settings-btn" title="الإعدادات">
+                        <i class="fa-solid fa-gear"></i>
+                    </button>
+                    <!-- Move menu to left for RTL -->
+                    <div class="dropdown-menu glass-panel" id="settings-menu" style="right: 80px;">
+
+                        <!-- Camera Toggle -->
+                        <div class="control-group">
+                            <span class="arabic-text">تشغيل الكاميرا</span>
+                            <label class="switch-label">
+                                <input type="checkbox" id="camera-toggle" checked>
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+
+                        <!-- Theme Toggle -->
+                        <div class="control-group">
+                            <span class="arabic-text">الوضع الداكن</span>
+                            <label class="switch-label">
+                                <input type="checkbox" id="theme-toggle" checked>
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+
+                    </div>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+
+            <!-- Two Column Layout Container -->
+            <div class="two-column-layout">
+
+                <!-- Right Column (In RTL this is the start): Vertical Camera -->
+                <div class="camera-column">
+                    <div class="camera-wrapper glass-panel glowing-cyan-pulse">
+                        <div class="camera-container">
+                            <!-- Simulated Camera Feed -->
+                           <video id="video" autoplay style="width:100%; height: auto;"></video><h1 id="prediction">...</h1>
+                            <div id="status">جارٍ التحليل...</div>
+
+                            <div class="camera-top-bar">
+                                <span class="badge active"><i class="fa-solid fa-circle-dot blink"></i> تحليل
+                                    مباشر</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Left Column: Interpretation & History -->
+                <div class="results-column">
+
+                    <!-- Interpretation Result Card -->
+                    <div class="result-card glass-panel shadow-cyan">
+                        <div class="result-header">
+                            <span class="confidence-badge"><i class="fa-solid fa-shield-halved"></i> 98%
+                                Confidence</span>
+                            <button class="volume-btn glass-btn" aria-label="Play Translation">
+                                <i class="fa-solid fa-volume-high"></i> Listen
+                            </button>
+                        </div>
+                        <div class="result-body">
+                            <h2 class="main-translation" id="main-translation">انتظار الحركة</h2>
+                        </div>
+                    </div>
+
+                    <!-- Sentence History Stream -->
+                    <div class="history-stream glass-panel">
+                        <div class="history-header">
+                            <h3><i class="fa-solid fa-clock-rotate-left"></i> سجل المحادثة</h3>
+                        </div>
+                        <div class="stream-container" id="history-container" id = "history-container">
+                             
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </main>
+
+    </div>
+
+    <footer class="app-footer">
+        <p>Powered by TensorFlow & Mediapipe | Inclusive Design 2026</p>
+    </footer>
+    <div id="prediction">
+      waiting...
+    </div>
+    <script src="/static/script.js"></script>
+</body>
+
+</html>

@@ -1,4 +1,5 @@
-import streamlit as st
+from flask import Flask, render_template, request, jsonify
+from flask_cors import CORS
 import cv2
 import numpy as np
 import mediapipe as mp
@@ -7,77 +8,87 @@ from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import LSTM, Dense, InputLayer
 import os
 
+app = Flask(__name__)
+CORS(app) # ضروري للسماح للمتصفح بالاتصال بالسيرفر
 
-st.set_page_config(page_title="وصال AI", page_icon=":)", layout="centered")
+# 1. إعدادات الموديل
+actions = np.array(['HELP', 'TOILET', 'KF_GATE', 'THANKS', 'WELCOME'])
 
-st.title("Wesal-AI")
-st.subheader("مترجم لغة الإشارة الفوري (نسخة الويب)")
-st.markdown("---")
-
-
-@st.cache_resource # لتسريع الموقع وعدم تحميل الموديل في كل مرة
-def load_wesal_model():
+def build_and_load_model(path, num_classes):
     model = Sequential()
-    model.add(InputLayer(input_shape=(30, 1530))) 
+    model.add(InputLayer(input_shape=(30, 1530)))
     model.add(LSTM(64, return_sequences=True, activation='relu'))
     model.add(LSTM(128, return_sequences=True, activation='relu'))
     model.add(LSTM(64, return_sequences=False, activation='relu'))
     model.add(Dense(64, activation='relu'))
     model.add(Dense(32, activation='relu'))
-    model.add(Dense(len(actions), activation='softmax'))
+    model.add(Dense(num_classes, activation='softmax'))
     
-  
-    weights_path = 'action_model.h5' 
-    if os.path.exists(weights_path):
-        model.load_weights(weights_path)
+    # تأكدي من صحة المسار هنا
+    if os.path.exists(path):
+        model.load_weights(path)
     return model
 
--
+# تحميل الموديل مرة واحدة عند التشغيل
+model = build_and_load_model("wesal-ai-ui/action_model.h5", 5)
+
+# 2. إعدادات MediaPipe (خارج الدالة لضمان الاستقرار)
 mp_holistic = mp.solutions.holistic
+holistic = mp_holistic.Holistic(
+    static_image_mode=True, 
+    model_complexity=1,
+    enable_segmentation=False,
+    refine_face_landmarks=False
+)
+
+sequence = []
 
 def extract_keypoints(results):
+    # استخراج النقاط مع التأكد من تعبئة الأصفار إذا لم توجد يد (للحفاظ على حجم 1530)
     face = np.array([[res.x, res.y, res.z] for res in results.face_landmarks.landmark]).flatten() if results.face_landmarks else np.zeros(468*3)
     lh = np.array([[res.x, res.y, res.z] for res in results.left_hand_landmarks.landmark]).flatten() if results.left_hand_landmarks else np.zeros(21*3)
     rh = np.array([[res.x, res.y, res.z] for res in results.right_hand_landmarks.landmark]).flatten() if results.right_hand_landmarks else np.zeros(21*3)
     return np.concatenate([face, lh, rh])
 
-# --- 4. تشغيل الواجهة ---
-actions = np.array(['HELP', 'TOILET', 'KF_GATE', 'THANKS', 'WELCOME'])
-model = load_wesal_model()
+@app.route("/")
+def home():
+    return render_template("index.html")
 
-st.sidebar.info("هذا النظام يستخدم الذكاء الاصطناعي لترجمة الإشارات الحركية إلى نصوص وصوت.")
-st.sidebar.image("https://img.icons8.com/fluency/100/sign-language.png")
+@app.route("/predict", methods=["POST"])
+def predict():
+    global sequence
+    try:
+        file = request.files.get("frame")
+        if not file:
+            return jsonify({"error": "No frame received"}), 400
 
-# إطار الكاميرا
-img_file_buffer = st.camera_input("وجه الكاميرا وقم بعمل الإشارة ثم التقط الصورة")
+        file_bytes = np.frombuffer(file.read(), np.uint8)
+        frame = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
+        if frame is None:
+            return jsonify({"error": "Failed to decode image"}), 400
 
-if img_file_buffer is not None:
-    # تحويل الصورة الملتقطة
-    bytes_data = img_file_buffer.getvalue()
-    cv2_img = cv2.imdecode(np.frombuffer(bytes_data, np.uint8), cv2.IMREAD_COLOR)
-    
-    # معالجة الصورة بـ Mediapipe
-    with mp_holistic.Holistic(min_detection_confidence=0.5) as holistic:
-        image_rgb = cv2.cvtColor(cv2_img, cv2.COLOR_BGR2RGB)
-        results = holistic.process(image_rgb)
+        image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        
+        # معالجة الصورة
+        results = holistic.process(image)
         keypoints = extract_keypoints(results)
-        
-        
-        sequence = [keypoints] * 30 
-        
-        # التوقع
-        res = model.predict(np.expand_dims(sequence, axis=0), verbose=0)[0]
-        detected_action = actions[np.argmax(res)]
-        confidence = res[np.argmax(res)]
 
-        # عرض النتيجة
-        st.markdown(f"### النتيجة: **{detected_action}**")
-        st.progress(float(confidence))
-        st.write(f"نسبة التأكد: {confidence*100:.2f}%")
-        
-        if confidence > 0.7:
-            st.success(f"تم التعرف على الإشارة: {detected_action}")
-            
-        else:
+        sequence.append(keypoints)
+        sequence = sequence[-30:] # الاحتفاظ بآخر 30 إطار
 
-            st.warning("الإشارة غير واضحة تماماً.")
+        if len(sequence) == 30:
+            # استخدمي هذا:
+            input_data = tf.convert_to_tensor(np.expand_dims(sequence, axis=0), dtype=tf.float32)
+            res = model(input_data, training=False).numpy()[0]
+            if res[np.argmax(res)] > 0.5:
+                 action = actions[np.argmax(res)]
+                 return jsonify({"prediction": action})
+
+        return jsonify({"prediction": "جارِ التحليل..."})
+    
+    except Exception as e:
+        print(f"Error: {e}")
+        return jsonify({"error": str(e)}), 500
+
+if __name__ == "__main__":
+    app.run(debug=True, port=5000)
