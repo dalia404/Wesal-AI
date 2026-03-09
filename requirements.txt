@@ -1,11 +1,12 @@
 
-falsl
+falsk
 flask-cors
 gunicorn
 mediapipe==0.10.9
 tensorflow-cpu
 opencv-python-headless
 numpy
+
 
 
 
