@@ -11,7 +11,7 @@ import os
 
 app = Flask(__name__)
 CORS(app) 
-
+tf.config.set_visible_devices([], 'GPU')
 # 1. إعدادات الموديل
 actions = np.array(['HELP', 'TOILET', 'KF_GATE', 'THANKS', 'WELCOME'])
 
@@ -91,6 +91,7 @@ def predict():
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host='0.0.0.0', port=port)
+
 
 
 
