@@ -3,7 +3,7 @@ from flask_cors import CORS
 import cv2
 import numpy as np
 import mediapipe as mp
-from mediapipe.python.solutions import holistic as mp_holistic
+from mediapipe.solutions import holistic as mp_holistic
 import tensorflow as tf
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import LSTM, Dense, InputLayer
@@ -91,6 +91,7 @@ def predict():
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host='0.0.0.0', port=port)
+
 
 
 
