@@ -3,7 +3,6 @@ from flask_cors import CORS
 import cv2
 import numpy as np
 import mediapipe as mp
-from mediapipe.solutions import holistic as mp_holistic
 import tensorflow as tf
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import LSTM, Dense, InputLayer
@@ -30,7 +29,7 @@ def build_and_load_model(path, num_classes):
     return model
 
 # تحميل الموديل عند التشغيل
-model = build_and_load_model("wesal-ai-ui/action_model.h5", 5)
+model = build_and_load_model("action_model.h5", 5)
 
 # 2. إعدادات MediaPipe
 mp_holistic = mp.solutions.holistic
@@ -91,6 +90,7 @@ def predict():
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host='0.0.0.0', port=port)
+
 
 
 
