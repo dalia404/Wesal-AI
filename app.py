@@ -9,7 +9,7 @@ from tensorflow.keras.layers import LSTM, Dense, InputLayer
 import os
 
 app = Flask(__name__)
-CORS(app) # ضروري للسماح للمتصفح بالاتصال بالسيرفر
+CORS(app) 
 
 # 1. إعدادات الموديل
 actions = np.array(['HELP', 'TOILET', 'KF_GATE', 'THANKS', 'WELCOME'])
@@ -24,15 +24,14 @@ def build_and_load_model(path, num_classes):
     model.add(Dense(32, activation='relu'))
     model.add(Dense(num_classes, activation='softmax'))
     
-    # تأكدي من صحة المسار هنا
     if os.path.exists(path):
         model.load_weights(path)
     return model
 
-# تحميل الموديل مرة واحدة عند التشغيل
+# تحميل الموديل عند التشغيل
 model = build_and_load_model("wesal-ai-ui/action_model.h5", 5)
 
-# 2. إعدادات MediaPipe (خارج الدالة لضمان الاستقرار)
+# 2. إعدادات MediaPipe
 mp_holistic = mp.solutions.holistic
 holistic = mp_holistic.Holistic(
     static_image_mode=True, 
@@ -44,7 +43,6 @@ holistic = mp_holistic.Holistic(
 sequence = []
 
 def extract_keypoints(results):
-    # استخراج النقاط مع التأكد من تعبئة الأصفار إذا لم توجد يد (للحفاظ على حجم 1530)
     face = np.array([[res.x, res.y, res.z] for res in results.face_landmarks.landmark]).flatten() if results.face_landmarks else np.zeros(468*3)
     lh = np.array([[res.x, res.y, res.z] for res in results.left_hand_landmarks.landmark]).flatten() if results.left_hand_landmarks else np.zeros(21*3)
     rh = np.array([[res.x, res.y, res.z] for res in results.right_hand_landmarks.landmark]).flatten() if results.right_hand_landmarks else np.zeros(21*3)
@@ -69,15 +67,13 @@ def predict():
 
         image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         
-        # معالجة الصورة
         results = holistic.process(image)
         keypoints = extract_keypoints(results)
 
         sequence.append(keypoints)
-        sequence = sequence[-30:] # الاحتفاظ بآخر 30 إطار
+        sequence = sequence[-30:] 
 
         if len(sequence) == 30:
-            # استخدمي هذا:
             input_data = tf.convert_to_tensor(np.expand_dims(sequence, axis=0), dtype=tf.float32)
             res = model(input_data, training=False).numpy()[0]
             if res[np.argmax(res)] > 0.5:
@@ -90,10 +86,10 @@ def predict():
         print(f"Error: {e}")
         return jsonify({"error": str(e)}), 500
 
+
 if __name__ == "__main__":
-  
-   port = int(os.environ.get("PORT",5000))
-   app.run(host='0.0.0.0', port=port)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port)
 
 
 
